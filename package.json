@@ -1,9 +1,13 @@
 {
-  "name": "vscode-cube-client",
-  "displayName": "vscode-cube-client",
+  "name": "cube-client",
+  "displayName": "cube-client",
   "description": "",
   "version": "0.0.1",
   "publisher": "hrntknr",
+  "repository": {
+    "type" : "git",
+    "url" : "http://github.com/cynack/vscode-cube-client.git"
+  },
   "engines": {
     "vscode": "^1.20.0"
   },
