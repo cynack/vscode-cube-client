@@ -13,10 +13,9 @@ export default class DOMManager {
     // 現在一番親のコンポーネントを入れ替え
     const packets: Packet[] = []
     this.DOM = {}
-    packets.push({ message: 'group.del', data: { targetId: null } } as Packet)
     this._addElementToDOM(OML, this.DOM)
     packets.push({
-      message: 'group.add',
+      message: 'element.set',
       data: {
         parentId: null,
         oml: JSON.stringify(this._getOMLFromDOM(this.DOM))
