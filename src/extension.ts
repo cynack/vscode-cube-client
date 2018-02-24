@@ -9,56 +9,51 @@ const jsStringify = require('javascript-stringify')
 
 export function activate (context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand('extension.connectServer', async () => {
-    try {
-      const server = await vscode.window.showInputBox({
-        prompt: 'Websocket server address',
-        value: 'ws://localhost:8080'
-      })
-      const ws = new Websocket(server)
-      await new Promise((resolve, reject) => ws.on('open', resolve).on('error', reject))
-      const domManager = await getInitialOML(ws)
+    const server = await vscode.window.showInputBox({
+      prompt: 'Websocket server address',
+      value: 'ws://localhost:8080'
+    })
+    const ws = new Websocket(server)
+    await new Promise((resolve, reject) => ws.on('open', resolve).on('error', reject))
+    const domManager = await getInitialOML(ws)
 
-      const document = await vscode.workspace.openTextDocument({
-        language: 'oml',
-        content: getCodeFromOML(domManager.getOMLFromDOM(), '  ')
-      })
-      const textEditor = await vscode.window.showTextDocument(document)
+    const document = await vscode.workspace.openTextDocument({
+      language: 'oml',
+      content: getCodeFromOML(domManager.getOMLFromDOM(), '  ')
+    })
+    const textEditor = await vscode.window.showTextDocument(document)
 
-      let omlChache = JSON.stringify(domManager.getOMLFromDOM())
-      vscode.window.onDidChangeTextEditorSelection(() => {
-        if (vscode.window.activeTextEditor !== textEditor)return
-        const OML = getOMLFromCode(document.getText())
-        if (OML && JSON.stringify(OML) !== omlChache) {
-          omlChache = JSON.stringify(OML)
-          const packets = domManager.updateDOMByOML(OML as OML)
-          if (packets.length !== 0) {
-            ws.send(JSON.stringify(packets))
-          }
+    let omlChache = JSON.stringify(domManager.getOMLFromDOM())
+    vscode.window.onDidChangeTextEditorSelection(() => {
+      if (vscode.window.activeTextEditor !== textEditor)return
+      const OML = getOMLFromCode(document.getText())
+      if (OML && JSON.stringify(OML) !== omlChache) {
+        omlChache = JSON.stringify(OML)
+        const packets = domManager.updateDOMByOML(OML as OML, vscode.window.showErrorMessage)
+        if (packets.length !== 0) {
+          ws.send(JSON.stringify(packets))
         }
+      }
+    })
+    ws.on('message', async (data) => {
+      let recievePackets
+      try {
+        recievePackets = JSON.parse(data.toString()) as Packet[]
+      } catch (e) {
+        return
+      }
+      const { packets: sendPackets, update } = domManager.updateDOMByPackets(recievePackets)
+      sendPackets.forEach(packet => {
+        ws.send(JSON.stringify(packet))
       })
-      ws.on('message', async (data) => {
-        let recievePackets
-        try {
-          recievePackets = JSON.parse(data.toString()) as Packet[]
-        } catch (e) {
-          return
-        }
-        const { packets: sendPackets, update } = domManager.updateDOMByPackets(recievePackets)
-        sendPackets.forEach(packet => {
-          ws.send(JSON.stringify(packet))
+      if (update) {
+        const OML = domManager.getOMLFromDOM()
+        textEditor.edit(editBuilder => {
+          editBuilder.delete(new vscode.Range(new vscode.Position(0, 0), new vscode.Position(textEditor.document.lineCount, 0)))
+          editBuilder.insert(new vscode.Position(0, 0), getCodeFromOML(OML, '  '))
         })
-        if (update) {
-          const OML = domManager.getOMLFromDOM()
-          textEditor.edit(editBuilder => {
-            editBuilder.delete(new vscode.Range(new vscode.Position(0, 0), new vscode.Position(textEditor.document.lineCount, 0)))
-            editBuilder.insert(new vscode.Position(0, 0), getCodeFromOML(OML, '  '))
-          })
-        }
-      })
-    } catch (e) {
-      vscode.window.showErrorMessage(e.message)
-      console.error(e)
-    }
+      }
+    })
   })
   context.subscriptions.push(disposable)
 }

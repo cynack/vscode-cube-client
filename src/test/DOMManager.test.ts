@@ -37,7 +37,7 @@ suite('DOMManager Tests', () => {
   })
   test('get packets', () => {
     const domManager = new DOMManager({})
-    const packets = domManager.updateDOMByOML({ group: [] })
+    const packets = domManager.updateDOMByOML({ group: [] }, console.error)
     // {"id":uuid,"group":[]}
     chai.expect(domManager.getOMLFromDOM())
       .to.have.deep.include({ group: [] })

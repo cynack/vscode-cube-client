@@ -5,17 +5,19 @@ import * as assert from 'assert'
 export default class DOMManager {
   DOM: DOM
   _DOMPath: {[id: string]: string[]}
+  _errorFunction: Function
   constructor (OML: OML) {
     this.DOM = {}
     this._DOMPath = {}
     this._addElementToDOM(OML, this.DOM)
   }
 
-  updateDOMByOML (OML: OML): Packet[] {
+  updateDOMByOML (OML: OML, errorFunction: Function): Packet[] {
     // TODO: よりよく（ごり押しなう）
     // 現在一番親のコンポーネントを入れ替え
     const packets: Packet[] = []
     this.DOM = {}
+    this._errorFunction = errorFunction
     this._addElementToDOM(OML, this.DOM)
     packets.push({
       message: 'element.set',
@@ -45,8 +47,16 @@ export default class DOMManager {
             const path = [...this._DOMPath[packet.data.targetId], packet.data.targetId]
             let DOM = this.DOM
             let parent = null
+            if (path[0] !== DOM.id) {
+              this._errorFunction('（　´∀｀）')
+              return null
+            }
             for (let id of path.slice(1)) {
               parent = DOM
+              if (!DOM.group && DOM.group[id]) {
+                this._errorFunction('（　´∀｀）')
+                return null
+              }
               DOM = DOM.group[id]
               assert.equal(id, DOM.id)
             }
