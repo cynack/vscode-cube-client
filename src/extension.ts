@@ -3,7 +3,7 @@ import * as vscode from 'vscode'
 import * as Websocket from 'ws'
 import * as vm from 'vm'
 import DOMManater from './DOMManager'
-import { OML, Packet } from './interface'
+import { OML, Packet, OMLNoID } from './interface'
 // import * as jsStringify from 'javascript-stringify'
 const jsStringify = require('javascript-stringify')
 
@@ -30,7 +30,7 @@ export function activate (context: vscode.ExtensionContext) {
         const OML = getOMLFromCode(document.getText())
         if (OML && JSON.stringify(OML) !== omlChache) {
           omlChache = JSON.stringify(OML)
-          const packets = domManager.updateDOMByOML(OML)
+          const packets = domManager.updateDOMByOML(OML as OML)
           if (packets.length !== 0) {
             ws.send(JSON.stringify(packets))
           }
@@ -93,26 +93,37 @@ function getInitialOML (ws: Websocket): Promise<DOMManater> {
   })
 }
 
-function getOMLFromCode (code: string): OML {
+function getOMLFromCode (code: string): OMLNoID {
   try {
     const script = new vm.Script(code)
     const sandbox = { module: { exports: {} } }
     script.runInContext(vm.createContext(sandbox))
     const result = sandbox.module.exports as any
     if (result.oml == null) {
-      return {} as OML
+      return {} as OMLNoID
     }
-    return result.oml as OML
+    return result.oml as OMLNoID
   } catch (e) {
     return
   }
 }
 
-function getCodeFromOML (omlObj: OML, indent: string): string {
+function getCodeFromOML (OML: OML, indent: string): string {
   const oml = jsStringify(
-    { oml: omlObj },
+    { oml: deleteIdFromOML(OML) },
     null,
     indent
   )
   return `module.exports = ${oml}`
+}
+
+function deleteIdFromOML (OML: OML): OMLNoID {
+  const newOML = Object.assign({}, OML) as OML
+  if (newOML.id) {
+    delete newOML.id
+  }
+  if (newOML.group) {
+    newOML.group = newOML.group.map(deleteIdFromOML)
+  }
+  return newOML
 }
