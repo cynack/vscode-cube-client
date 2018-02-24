@@ -30,7 +30,7 @@ export function activate (context: vscode.ExtensionContext) {
         const OML = getOMLFromCode(document.getText())
         if (OML && JSON.stringify(OML) !== omlChache) {
           omlChache = JSON.stringify(OML)
-          const packets = domManager.updateDOMByOML(OML as OML)
+          const packets = domManager.updateDOMByOML(OML)
           if (packets.length !== 0) {
             ws.send(JSON.stringify(packets))
           }
@@ -93,7 +93,7 @@ function getInitialOML (ws: Websocket): Promise<DOMManater> {
   })
 }
 
-function getOMLFromCode (code: string): boolean | OML {
+function getOMLFromCode (code: string): OML {
   try {
     const script = new vm.Script(code)
     const sandbox = { module: { exports: {} } }
@@ -104,7 +104,7 @@ function getOMLFromCode (code: string): boolean | OML {
     }
     return result.oml as OML
   } catch (e) {
-    return false
+    return
   }
 }
 
