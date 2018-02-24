@@ -1,0 +1,45 @@
+{
+  "name": "vscode-cube-client",
+  "displayName": "vscode-cube-client",
+  "description": "",
+  "version": "0.0.1",
+  "publisher": "hrntknr",
+  "engines": {
+    "vscode": "^1.20.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:extension.connectServer"
+  ],
+  "main": "./out/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.connectServer",
+        "title": "Connect to cube server"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.43",
+    "@types/uuid": "^3.4.3",
+    "@types/ws": "^4.0.1",
+    "tslint": "^5.9.1",
+    "tslint-config-standard": "^7.0.0",
+    "typescript": "^2.6.1",
+    "vscode": "^1.1.6"
+  },
+  "dependencies": {
+    "javascript-stringify": "^1.6.0",
+    "uuid": "^3.2.1",
+    "ws": "^4.1.0"
+  }
+}

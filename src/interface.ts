@@ -1,0 +1,19 @@
+export interface Packet {
+  message: string,
+  data: {
+    targetId?: string,
+    parentId?: string,
+    oml?: string
+  }
+}
+
+export interface OML {
+  group?: OML[]
+  component?: string
+  id?: string
+  scale?: string[] | number[]
+  size?: string[] | number[]
+  pos?: string[] | number[]
+  rot?: string[] | number[]
+  color?: string[] | number[]
+}
