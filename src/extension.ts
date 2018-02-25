@@ -56,10 +56,13 @@ export function activate (context: vscode.ExtensionContext) {
       })
       if (update) {
         const OML = domManager.getOMLFromDOM()
-        textEditor.edit(editBuilder => {
-          editBuilder.delete(new vscode.Range(new vscode.Position(0, 0), new vscode.Position(textEditor.document.lineCount, 0)))
-          editBuilder.insert(new vscode.Position(0, 0), getCodeFromOML(OML, '  '))
-        })
+        const edits = [
+          vscode.TextEdit.delete(new vscode.Range(new vscode.Position(0, 0), new vscode.Position(document.lineCount, 0))),
+          vscode.TextEdit.insert(new vscode.Position(0, 0), getCodeFromOML(OML, indent))
+        ]
+        const edit = new vscode.WorkspaceEdit()
+        edit.set(document.uri, edits)
+        vscode.workspace.applyEdit(edit)
       }
     })
   })
