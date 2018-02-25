@@ -43,6 +43,27 @@ suite('DOMManager Tests', () => {
       .to.have.deep.include({ group: [] })
       .to.have.property('id').match(uuid)
   })
+  test('get packets2', () => {
+    const domManager = new DOMManager({ group: [{ id: 'testId', component: '@cube' }] }, console.error)
+    const packets = domManager.updateDOMByOML({ group: [{ id: 'testId', component: '@sphere' }] })
+    // {"id":uuid,"group":[{"id":uuid,"component":"@sphere"}]}
+    chai.expect(domManager.getOMLFromDOM())
+      .to.have.property('id').match(uuid)
+    chai.expect(domManager.getOMLFromDOM())
+      .to.have.nested.include({ 'group[0].component': '@sphere' })
+      .to.have.nested.include({ 'group[0].id': 'testId' })
+  })
+  test('packet should difference only', () => {
+    const domManager = new DOMManager({ group: [{ id: 'testId', component: '@cube' }] }, console.error)
+    const packets = domManager.updateDOMByOML({ group: [{ id: 'testId', component: '@sphere' }] })
+    // [{"message":"element.set","data":{"targetId":"testId","oml":"\"id\":\"testId\",\"component\":\"@sphere\""}}]
+    chai.expect(packets)
+      .to.have.lengthOf(1)
+    chai.expect(packets[0])
+      .to.have.nested.include({ 'message': 'element.set' })
+      .to.have.nested.include({ 'data.targetId': 'testId' })
+      .to.have.nested.include({ 'data.oml': '"id":"testId",""component":"@sphere"' })
+  })
   test('apply packet', () => {
     const domManager = new DOMManager({}, console.error)
     domManager.updateDOMByPackets([{
