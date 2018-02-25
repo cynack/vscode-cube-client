@@ -28,10 +28,12 @@ export function activate (context: vscode.ExtensionContext) {
     })
     const textEditor = await vscode.window.showTextDocument(document)
 
+    let OMLChache
     vscode.workspace.onDidChangeTextDocument((evt) => {
       if (evt.document !== document)return
       const OML = getOMLFromCode(document.getText())
-      if (OML) {
+      if (OML && JSON.stringify(OML) !== OMLChache) {
+        OMLChache = JSON.stringify(OML)
         const packets = domManager.updateDOMByOML(OML as OML, vscode.window.showErrorMessage)
         if (packets.length !== 0) {
           ws.send(JSON.stringify(packets))
