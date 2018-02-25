@@ -16,7 +16,7 @@ export function activate (context: vscode.ExtensionContext) {
     if (server == null)return
     const ws = new Websocket(server)
     await new Promise((resolve, reject) => ws.on('open', resolve).on('error', reject))
-    const domManager = await getInitialOML(ws)
+    const domManager = new DOMManater({})
     const config = vscode.workspace.getConfiguration('editor', null as null as undefined)
     const indent = config.get('insertSpaces')
       ? ' '.repeat(config.get('tabSize'))
@@ -67,38 +67,13 @@ export function activate (context: vscode.ExtensionContext) {
         vscode.workspace.applyEdit(edit)
       }
     })
-  })
-  context.subscriptions.push(disposable)
-}
 
-function getInitialOML (ws: Websocket): Promise<DOMManater> {
-  return new Promise<DOMManater>(resolve => {
-    (function waitForRootOML () {
-      ws.once('message', (data) => {
-        try {
-          const json = JSON.parse(data) as Packet[]
-          const index = json.findIndex((json) => {
-            if (json.message === 'element.set' && json.data.targetId == null) {
-              return true
-            }
-            return false
-          })
-          if (index === -1) {
-            return waitForRootOML()
-          }
-          const initialOML = JSON.parse(json[index].data.oml)
-          const domManager = new DOMManater(initialOML)
-          resolve(domManager)
-        } catch (e) {
-          waitForRootOML()
-        }
-      })
-    })()
     ws.send(JSON.stringify([{
       message: 'element.get',
       data: { targetId: null }
     }] as Packet[]))
   })
+  context.subscriptions.push(disposable)
 }
 
 function getOMLFromCode (code: string): OMLNoID {
