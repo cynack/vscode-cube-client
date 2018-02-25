@@ -13,26 +13,34 @@ export function activate (context: vscode.ExtensionContext) {
       prompt: 'Websocket server address',
       value: 'ws://localhost:8080'
     })
+    if (server == null)return
     const ws = new Websocket(server)
     await new Promise((resolve, reject) => ws.on('open', resolve).on('error', reject))
     const domManager = await getInitialOML(ws)
+    const config = vscode.workspace.getConfiguration('editor', null as null as undefined)
+    const indent = config.get('insertSpaces')
+      ? ' '.repeat(config.get('tabSize'))
+      : '\t'
 
     const document = await vscode.workspace.openTextDocument({
       language: 'oml',
-      content: getCodeFromOML(domManager.getOMLFromDOM(), '  ')
+      content: getCodeFromOML(domManager.getOMLFromDOM(), indent)
     })
     const textEditor = await vscode.window.showTextDocument(document)
 
-    let omlChache = JSON.stringify(domManager.getOMLFromDOM())
-    vscode.window.onDidChangeTextEditorSelection(() => {
-      if (vscode.window.activeTextEditor !== textEditor)return
+    vscode.workspace.onDidChangeTextDocument((evt) => {
+      if (evt.document !== document)return
       const OML = getOMLFromCode(document.getText())
-      if (OML && JSON.stringify(OML) !== omlChache) {
-        omlChache = JSON.stringify(OML)
+      if (OML) {
         const packets = domManager.updateDOMByOML(OML as OML, vscode.window.showErrorMessage)
         if (packets.length !== 0) {
           ws.send(JSON.stringify(packets))
         }
+      }
+    })
+    vscode.workspace.onDidCloseTextDocument((textDocument) => {
+      if (document === textDocument) {
+        ws.close()
       }
     })
     ws.on('message', async (data) => {
@@ -48,10 +56,13 @@ export function activate (context: vscode.ExtensionContext) {
       })
       if (update) {
         const OML = domManager.getOMLFromDOM()
-        textEditor.edit(editBuilder => {
-          editBuilder.delete(new vscode.Range(new vscode.Position(0, 0), new vscode.Position(textEditor.document.lineCount, 0)))
-          editBuilder.insert(new vscode.Position(0, 0), getCodeFromOML(OML, '  '))
-        })
+        const edits = [
+          vscode.TextEdit.delete(new vscode.Range(new vscode.Position(0, 0), new vscode.Position(document.lineCount, 0))),
+          vscode.TextEdit.insert(new vscode.Position(0, 0), getCodeFromOML(OML, indent))
+        ]
+        const edit = new vscode.WorkspaceEdit()
+        edit.set(document.uri, edits)
+        vscode.workspace.applyEdit(edit)
       }
     })
   })
