@@ -22,7 +22,7 @@ export default class DOMManager {
     packets.push({
       message: 'element.set',
       data: {
-        parentId: null,
+        targetId: null,
         oml: JSON.stringify(this.getOMLFromDOM(this.DOM))
       }
     })
