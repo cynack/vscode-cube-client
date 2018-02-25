@@ -16,7 +16,7 @@ export function activate (context: vscode.ExtensionContext) {
     if (server == null)return
     const ws = new Websocket(server)
     await new Promise((resolve, reject) => ws.on('open', resolve).on('error', reject))
-    const domManager = new DOMManater({})
+    const domManager = new DOMManater({}, vscode.window.showErrorMessage)
     const config = vscode.workspace.getConfiguration('editor', null as null as undefined)
     const indent = config.get('insertSpaces')
       ? ' '.repeat(config.get('tabSize'))
@@ -34,7 +34,7 @@ export function activate (context: vscode.ExtensionContext) {
       const OML = getOMLFromCode(document.getText())
       if (OML && JSON.stringify(OML) !== OMLChache) {
         OMLChache = JSON.stringify(OML)
-        const packets = domManager.updateDOMByOML(OML as OML, vscode.window.showErrorMessage)
+        const packets = domManager.updateDOMByOML(OML as OML)
         if (packets.length !== 0) {
           ws.send(JSON.stringify(packets))
         }

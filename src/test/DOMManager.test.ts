@@ -10,41 +10,41 @@ const uuid = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
 
 suite('DOMManager Tests', () => {
   test('constructor, check DOM', () => {
-    const domManager = new DOMManager({})
+    const domManager = new DOMManager({}, console.error)
     chai.expect(domManager)
       .to.have.property('DOM')
       .to.have.property('id').match(uuid)
   })
   test('constructor, getOML check', () => {
-    const domManager = new DOMManager({})
+    const domManager = new DOMManager({}, console.error)
     // {"id":uuid}
     chai.expect(domManager.getOMLFromDOM())
       .to.have.property('id').match(uuid)
   })
   test('include group constructor', () => {
-    const domManager = new DOMManager({ group: [] })
+    const domManager = new DOMManager({ group: [] }, console.error)
     // {"id":uuid,"group":[]}
     chai.expect(domManager.getOMLFromDOM())
       .to.deep.include({ 'group': [] })
       .to.have.property('id').match(uuid)
   })
   test('include component constructor', () => {
-    const domManager = new DOMManager({ component: '@cube' })
+    const domManager = new DOMManager({ component: '@cube' }, console.error)
     // {"id":uuid,"component":"@cube"}
     chai.expect(domManager.getOMLFromDOM())
       .to.deep.include({ 'component': '@cube' })
       .to.have.property('id').match(uuid)
   })
   test('get packets', () => {
-    const domManager = new DOMManager({})
-    const packets = domManager.updateDOMByOML({ group: [] }, console.error)
+    const domManager = new DOMManager({}, console.error)
+    const packets = domManager.updateDOMByOML({ group: [] })
     // {"id":uuid,"group":[]}
     chai.expect(domManager.getOMLFromDOM())
       .to.have.deep.include({ group: [] })
       .to.have.property('id').match(uuid)
   })
   test('apply packet', () => {
-    const domManager = new DOMManager({})
+    const domManager = new DOMManager({}, console.error)
     domManager.updateDOMByPackets([{
       message: 'element.set',
       data: {
@@ -72,7 +72,7 @@ suite('DOMManager Tests', () => {
           ]
         }
       ]
-    })
+    }, console.error)
     domManager.updateDOMByPackets([{
       message: 'element.set',
       data: {
