@@ -6,23 +6,23 @@ export default class DOMManager {
   DOM: DOM
   _DOMPath: {[id: string]: string[]}
   _errorFunction: Function
-  constructor (OML: OML) {
+  constructor (OML: OML, errorFunction: Function) {
     this.DOM = {}
     this._DOMPath = {}
+    this._errorFunction = errorFunction
     this._addElementToDOM(OML, this.DOM)
   }
 
-  updateDOMByOML (OML: OML, errorFunction: Function): Packet[] {
+  updateDOMByOML (OML: OML): Packet[] {
     // TODO: よりよく（ごり押しなう）
     // 現在一番親のコンポーネントを入れ替え
     const packets: Packet[] = []
     this.DOM = {}
-    this._errorFunction = errorFunction
     this._addElementToDOM(OML, this.DOM)
     packets.push({
       message: 'element.set',
       data: {
-        parentId: null,
+        targetId: null,
         oml: JSON.stringify(this.getOMLFromDOM(this.DOM))
       }
     })
