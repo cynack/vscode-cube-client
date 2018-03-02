@@ -32,7 +32,7 @@ export function activate (context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument((evt) => {
       if (evt.document !== document)return
       const OML = getOMLFromCode(document.getText())
-      if (OML && JSON.stringify(OML) !== OMLChache) {
+      if (OML && JSON.stringify(OML) !== OMLChache && checkOML(OML)) {
         OMLChache = JSON.stringify(OML)
         const packets = domManager.updateDOMByOML(OML as OML)
         if (packets.length !== 0) {
@@ -109,4 +109,22 @@ function deleteIdFromOML (OML: OML): OMLNoID {
     newOML.group = newOML.group.map(deleteIdFromOML)
   }
   return newOML
+}
+
+const componentReg = /@(cube|sphere|cylinder|plane|model\(.*\))/
+function checkOML (OML: OML): boolean {
+  if (OML.component == null && OML.group == null) {
+    return false
+  }
+  if (OML.component != null) {
+    if (!componentReg.test(OML.component))return false
+  }
+  if (OML.group != null) {
+    for (const _OML of OML.group) {
+      if (!checkOML(_OML)) {
+        return false
+      }
+    }
+  }
+  return true
 }
