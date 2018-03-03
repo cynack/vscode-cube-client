@@ -15,8 +15,6 @@ export default class DOMManager {
   }
 
   updateDOMByOML (OML: OML): Packet[] {
-    // TODO: よりよく（ごり押しなう）
-    // 現在一番親のコンポーネントを入れ替え
     const { newDOM, packets } = this._OML2DOM(OML, this.DOM)
     this.DOM = newDOM
     return packets
@@ -137,32 +135,31 @@ export default class DOMManager {
             dom.groupOrder.push(newDOM.id)
             packets.push({
               message: 'group.add',
-              data: { parentId: id, oml: OML }
+              data: { parentId: id, oml: JSON.stringify(this.getOMLFromDOM(newDOM)) }
             } as Packet)
           } else {
             const _id = baseDOM.groupOrder[index]
+            checkedId.push(_id)
             if (JSON.stringify(OML.group[index]) === JSON.stringify(baseDOM.group[_id])) {
               const { newDOM } = this._OML2DOM(OML.group[index], null, childPath)
               dom.group[_id] = newDOM
               dom.groupOrder.push(_id)
-              checkedId.push(_id)
             } else {
               const { newDOM, packets: _packets } = this._OML2DOM(OML.group[index], baseDOM.group[_id], childPath)
               dom.group[_id] = newDOM
               dom.groupOrder.push(_id)
-              checkedId.push(_id)
               packets = packets.concat(_packets)
             }
           }
-          baseDOM.groupOrder.forEach(id => {
-            if (checkedId.indexOf(id) === -1) {
-              packets.push({
-                message: 'group.del',
-                data: { targetId: id }
-              } as Packet)
-            }
-          })
         }
+        baseDOM.groupOrder.forEach(id => {
+          if (checkedId.indexOf(id) === -1) {
+            packets.push({
+              message: 'group.del',
+              data: { targetId: id }
+            } as Packet)
+          }
+        })
       } else {
         for (let index = 0;index < OML.group.length;index++) {
           const { newDOM } = this._OML2DOM(OML.group[index], null, childPath)
@@ -178,7 +175,7 @@ export default class DOMManager {
         message: 'element.set',
         data: {
           targetId: id,
-          oml: JSON.stringify(OML)
+          oml: JSON.stringify(this.getOMLFromDOM(dom))
         }
       } as Packet]
     }
