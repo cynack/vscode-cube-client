@@ -45,7 +45,7 @@ export function activate (context: vscode.ExtensionContext) {
         ws.close()
       }
     })
-    ws.on('message', async (data) => {
+    ws.on('message', (data) => {
       let recievePackets
       try {
         recievePackets = JSON.parse(data.toString()) as Packet[]
@@ -66,6 +66,10 @@ export function activate (context: vscode.ExtensionContext) {
         edit.set(document.uri, edits)
         vscode.workspace.applyEdit(edit)
       }
+    })
+
+    ws.on('close', (code) => {
+      vscode.window.showErrorMessage(`close websocket code: ${code}`)
     })
 
     ws.send(JSON.stringify([{
