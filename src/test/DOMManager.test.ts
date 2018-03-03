@@ -56,13 +56,13 @@ suite('DOMManager Tests', () => {
   test('packet should difference only', () => {
     const domManager = new DOMManager({ group: [{ id: 'testId', component: '@cube' }] }, console.error)
     const packets = domManager.updateDOMByOML({ group: [{ id: 'testId', component: '@sphere' }] })
-    // [{"message":"element.set","data":{"targetId":"testId","oml":"\"id\":\"testId\",\"component\":\"@sphere\""}}]
+    // [{"message":"element.set","data":{"targetId":"testId","oml":"{\"id\":\"testId\",\"component\":\"@sphere\"}"}}]
     chai.expect(packets)
       .to.have.lengthOf(1)
     chai.expect(packets[0])
       .to.have.nested.include({ 'message': 'element.set' })
       .to.have.nested.include({ 'data.targetId': 'testId' })
-      .to.have.nested.include({ 'data.oml': '"id":"testId",""component":"@sphere"' })
+      .to.have.nested.include({ 'data.oml': '{"id":"testId","component":"@sphere"}' })
   })
   test('apply packet', () => {
     const domManager = new DOMManager({}, console.error)
@@ -98,13 +98,13 @@ suite('DOMManager Tests', () => {
       message: 'element.set',
       data: {
         targetId: 'testId2',
-        oml: '{"component":"@sphere"}'
+        oml: '{"id":"testId3","component":"@sphere"}'
       }
     } as Packet])
     // {"id":uuid,"group":[{"id":"testId","component":"@sphere"}]}
     chai.expect(domManager.getOMLFromDOM())
       .to.have.nested.include({ 'group[0].id': 'testId' })
-      .to.have.nested.include({ 'group[0].group[0].id': 'testId2' })
+      .to.have.nested.include({ 'group[0].group[0].id': 'testId3' })
       .to.have.nested.include({ 'group[0].group[0].component': '@sphere' })
       .to.have.property('id').match(uuid)
   })

@@ -32,7 +32,7 @@ export function activate (context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument((evt) => {
       if (evt.document !== document)return
       const OML = getOMLFromCode(document.getText())
-      if (OML && JSON.stringify(OML) !== OMLChache) {
+      if (OML && JSON.stringify(OML) !== OMLChache && checkOML(OML)) {
         OMLChache = JSON.stringify(OML)
         const packets = domManager.updateDOMByOML(OML as OML)
         if (packets.length !== 0) {
@@ -45,7 +45,7 @@ export function activate (context: vscode.ExtensionContext) {
         ws.close()
       }
     })
-    ws.on('message', async (data) => {
+    ws.on('message', (data) => {
       let recievePackets
       try {
         recievePackets = JSON.parse(data.toString()) as Packet[]
@@ -66,6 +66,10 @@ export function activate (context: vscode.ExtensionContext) {
         edit.set(document.uri, edits)
         vscode.workspace.applyEdit(edit)
       }
+    })
+
+    ws.on('close', (code) => {
+      vscode.window.showErrorMessage(`close websocket code: ${code}`)
     })
 
     ws.send(JSON.stringify([{
@@ -102,11 +106,27 @@ function getCodeFromOML (OML: OML, indent: string): string {
 
 function deleteIdFromOML (OML: OML): OMLNoID {
   const newOML = Object.assign({}, OML) as OML
-  if (newOML.id) {
-    delete newOML.id
-  }
+  delete newOML.id
   if (newOML.group) {
     newOML.group = newOML.group.map(deleteIdFromOML)
   }
-  return newOML
+  return newOML as OMLNoID
+}
+
+const componentReg = /@(cube|sphere|cylinder|plane|model\(.*\))/
+function checkOML (OML: OML): boolean {
+  if (OML.component == null && OML.group == null) {
+    return false
+  }
+  if (OML.component != null) {
+    if (!componentReg.test(OML.component))return false
+  }
+  if (OML.group != null) {
+    for (const _OML of OML.group) {
+      if (!checkOML(_OML)) {
+        return false
+      }
+    }
+  }
+  return true
 }
