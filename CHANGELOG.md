@@ -1,7 +1,6 @@
 # Change Log
-All notable changes to the "vscode-cube-client" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-- Initial release
+## [0.0.5]
+- 差分更新
+  - `element.get`,`element.set`だけではなく、`group.add`,`group.del`も利用。
+- error handling
