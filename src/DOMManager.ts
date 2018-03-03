@@ -7,7 +7,7 @@ export default class DOMManager {
   _DOMPath: {[id: string]: string[]}
   _errorFunction: Function
   constructor (OML: OML, errorFunction: Function) {
-    this.DOM = { id: uuid.v4(), groupOrder: [] }
+    this.DOM = { id: null }
     this._DOMPath = {}
     this._errorFunction = errorFunction
     const { newDOM } = this._OML2DOM(OML, this.DOM)
@@ -127,6 +127,12 @@ export default class DOMManager {
       dom.groupOrder = []
 
       if (baseDOM) {
+        if (baseDOM.groupOrder == null) {
+          baseDOM.groupOrder = []
+        }
+        if (baseDOM.group == null) {
+          elementSet = true
+        }
         const checkedId = []
         for (let index = 0;index < OML.group.length;index++) {
           if (index >= baseDOM.groupOrder.length) {
@@ -152,7 +158,8 @@ export default class DOMManager {
             }
           }
         }
-        baseDOM.groupOrder.forEach(id => {
+        baseDOM.groupOrder.forEach((id) => {
+          console.log(id)
           if (checkedId.indexOf(id) === -1) {
             packets.push({
               message: 'group.del',
@@ -168,6 +175,7 @@ export default class DOMManager {
         }
       }
     }
+    console.log(elementSet)
 
     // group類もまとめて上書き
     if (elementSet) {
@@ -210,7 +218,7 @@ export interface DOM {
   group?: {
     [id: string]: DOM
   }
-  groupOrder: Array<string>
+  groupOrder?: Array<string>
   component?: string
   id: string
   scale?: string[] | number[]

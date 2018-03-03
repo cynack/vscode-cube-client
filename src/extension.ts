@@ -102,13 +102,11 @@ function getCodeFromOML (OML: OML, indent: string): string {
 
 function deleteIdFromOML (OML: OML): OMLNoID {
   const newOML = Object.assign({}, OML) as OML
-  if (newOML.id) {
-    delete newOML.id
-  }
+  delete newOML.id
   if (newOML.group) {
     newOML.group = newOML.group.map(deleteIdFromOML)
   }
-  return newOML
+  return newOML as OMLNoID
 }
 
 const componentReg = /@(cube|sphere|cylinder|plane|model\(.*\))/
