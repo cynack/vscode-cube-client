@@ -10,15 +10,15 @@ export default class DOMManager {
     this.DOM = {}
     this._DOMPath = {}
     this._errorFunction = errorFunction
-    this._addElementToDOM(OML, this.DOM)
+    this.DOM = this._OML2DOM(OML)
   }
 
   updateDOMByOML (OML: OML): Packet[] {
     // TODO: よりよく（ごり押しなう）
     // 現在一番親のコンポーネントを入れ替え
     const packets: Packet[] = []
-    this.DOM = {}
-    this._addElementToDOM(OML, this.DOM)
+    // this._getDiffPackets(OML, this.DOM)
+    this.DOM = this._OML2DOM(OML)
     packets.push({
       message: 'element.set',
       data: {
@@ -41,26 +41,28 @@ export default class DOMManager {
             return null
           }
           if (packet.data.targetId == null) {
-            this.DOM = {}
-            this._addElementToDOM(OML, this.DOM)
+            this.DOM = this._OML2DOM(OML)
           } else {
             const path = [...this._DOMPath[packet.data.targetId], packet.data.targetId]
             let DOM = this.DOM
             let parent = null
-            if (path[0] !== DOM.id) {
+            if (path[0] !== this.DOM.id) {
               this._errorFunction('（　´∀｀）')
               return null
             }
+            const newDOM = this._OML2DOM(OML, path, packet.data.targetId)
             for (let id of path.slice(1)) {
               parent = DOM
               if (!DOM.group && DOM.group[id]) {
                 this._errorFunction('（　´∀｀）')
                 return null
               }
+              if (packet.data.targetId === id) {
+                DOM.group[id] = newDOM
+                return null
+              }
               DOM = DOM.group[id]
-              assert.equal(id, DOM.id)
             }
-            this._addElementToDOM(OML, DOM, path, packet.data.targetId)
           }
           update = true
           return null
@@ -73,7 +75,8 @@ export default class DOMManager {
     return { packets: sendPackets , update }
   }
 
-  _addElementToDOM (OML: OML, parent: DOM, path?: string[], id?: string) {
+  _OML2DOM (OML: OML, path?: string[], id?: string): DOM {
+    const dom = {} as DOM
     if (id == null) {
       id = uuid.v4()
     }
@@ -81,23 +84,26 @@ export default class DOMManager {
       path = []
     }
     this._DOMPath[id] = path
-    parent.id = id
+    dom.id = id
     if (OML.group) {
-      parent.group = {}
+      dom.group = {}
+      dom.groupOrder = []
       OML.group.forEach(element => {
         const _id = element.id == null ? uuid.v4() : element.id
-        parent.group[_id] = {}
+        dom.group[_id] = {}
+        dom.groupOrder.push(_id)
         path = path.slice()
         path.push(id)
-        this._addElementToDOM(element, parent.group[_id], path, _id)
+        dom.group[_id] = this._OML2DOM(element, path, _id)
       })
     }
-    if (OML.component)parent.component = OML.component
-    if (OML.scale)parent.scale = OML.scale
-    if (OML.size)parent.size = OML.size
-    if (OML.pos)parent.pos = OML.pos
-    if (OML.rot)parent.rot = OML.rot
-    if (OML.color)parent.color = OML.color
+    if (OML.component)dom.component = OML.component
+    if (OML.scale)dom.scale = OML.scale
+    if (OML.size)dom.size = OML.size
+    if (OML.pos)dom.pos = OML.pos
+    if (OML.rot)dom.rot = OML.rot
+    if (OML.color)dom.color = OML.color
+    return dom
   }
 
   getOMLFromDOM (DOM?: DOM): OML {
@@ -127,6 +133,7 @@ export interface DOM {
   group?: {
     [id: string]: DOM
   }
+  groupOrder?: Array<string>
   component?: string
   id?: string
   scale?: string[] | number[]
