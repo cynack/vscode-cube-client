@@ -159,7 +159,6 @@ export default class DOMManager {
           }
         }
         baseDOM.groupOrder.forEach((id) => {
-          console.log(id)
           if (checkedId.indexOf(id) === -1) {
             packets.push({
               message: 'group.del',
@@ -175,7 +174,6 @@ export default class DOMManager {
         }
       }
     }
-    console.log(elementSet)
 
     // group類もまとめて上書き
     if (elementSet) {
