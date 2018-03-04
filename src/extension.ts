@@ -16,7 +16,7 @@ export function activate (context: vscode.ExtensionContext) {
     if (server == null)return
     const ws = new Websocket(server)
     await new Promise((resolve, reject) => ws.on('open', resolve).on('error', reject))
-    const domManager = new DOMManater({}, vscode.window.showErrorMessage)
+    const domManager = new DOMManater({ group: [] }, vscode.window.showErrorMessage)
     const config = vscode.workspace.getConfiguration('editor', null as null as undefined)
     const indent = config.get('insertSpaces')
       ? ' '.repeat(config.get('tabSize'))

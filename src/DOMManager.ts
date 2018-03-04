@@ -7,7 +7,7 @@ export default class DOMManager {
   _DOMPath: {[id: string]: string[]}
   _errorFunction: Function
   constructor (OML: OML, errorFunction: Function) {
-    this.DOM = { id: null }
+    this.DOM = { id: 'root' }
     this._DOMPath = {}
     this._errorFunction = errorFunction
     const { newDOM } = this._OML2DOM(OML, this.DOM)
