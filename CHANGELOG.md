@@ -1,5 +1,9 @@
 # Change Log
 
+# [0.0.7]
+- 初期化時にこちらからelement.setを送るように
+- parentId削除(targetIdに)
+
 # [0.0.6]
 - 初期オブジェクト変更
 - 一番親のID変更
