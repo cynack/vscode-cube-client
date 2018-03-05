@@ -141,7 +141,7 @@ export default class DOMManager {
             dom.groupOrder.push(newDOM.id)
             packets.push({
               message: 'group.add',
-              data: { parentId: id, oml: JSON.stringify(this.getOMLFromDOM(newDOM)) }
+              data: { targetId: id, oml: JSON.stringify(this.getOMLFromDOM(newDOM)) }
             } as Packet)
           } else {
             const _id = baseDOM.groupOrder[index]

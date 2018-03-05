@@ -2,7 +2,6 @@ export interface Packet {
   message: string,
   data: {
     targetId?: string,
-    parentId?: string,
     oml?: string
   }
 }
