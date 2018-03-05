@@ -73,8 +73,11 @@ export function activate (context: vscode.ExtensionContext) {
     })
 
     ws.send(JSON.stringify([{
-      message: 'element.get',
-      data: { targetId: null }
+      message: 'element.set',
+      data: {
+        targetId: 'root',
+        oml: JSON.stringify(domManager.getOMLFromDOM())
+      }
     }] as Packet[]))
   })
   context.subscriptions.push(disposable)
