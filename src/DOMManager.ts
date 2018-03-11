@@ -8,7 +8,7 @@ export default class DOMManager {
   _errorFunction: Function
   constructor (OML: OML, errorFunction: Function) {
     this.DOM = { id: 'root' }
-    this._DOMPath = {}
+    this._DOMPath = { root: [] }
     this._errorFunction = errorFunction
     const { newDOM } = this._OML2DOM(OML, this.DOM)
     this.DOM = newDOM
@@ -31,7 +31,7 @@ export default class DOMManager {
           } catch (e) {
             return null
           }
-          if (packet.data.targetId == null) {
+          if (packet.data.targetId == null || packet.data.targetId === this.DOM.id) {
             const { newDOM } = this._OML2DOM(OML, null)
             this.DOM = newDOM
           } else {
