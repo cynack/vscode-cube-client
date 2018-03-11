@@ -63,24 +63,34 @@ export default class DOMManager {
           if (path == null) {
             return null
           }
-          let parent = this.DOM
-          for (let dir of path.slice(1)) {
-            parent = parent.group[dir]
-          }
-          if (!parent.group || !parent.group[packet.data.targetId]) {
+          if (path[0] !== this.DOM.id) {
+            this._errorFunction('（　´∀｀）')
             return null
           }
-          const index = parent.groupOrder.indexOf(packet.data.targetId)
+          let DOM = this.DOM
+          for (let id of path.slice(1)) {
+            if (!DOM.group && DOM.group[id]) {
+              this._errorFunction('（　´∀｀）')
+              return null
+            }
+            DOM = DOM.group[id]
+          }
+          if (!DOM.group || !DOM.group[packet.data.targetId]) {
+            this._errorFunction('（　´∀｀）')
+            return null
+          }
+          const index = DOM.groupOrder.indexOf(packet.data.targetId)
           if (
-            !parent.group[packet.data.targetId] ||
+            !DOM.group[packet.data.targetId] ||
             !this._DOMPath[packet.data.targetId] ||
             index === -1
           ) {
             this._errorFunction('（　´∀｀）')
           }
-          delete parent.group[packet.data.targetId]
+          delete DOM.group[packet.data.targetId]
           delete this._DOMPath[packet.data.targetId]
-          parent.groupOrder.splice(index, 1)
+          DOM.groupOrder.splice(index, 1)
+          update = true
           return null
         }
         default: {
