@@ -8,7 +8,7 @@ export default class DOMManager {
   _errorFunction: Function
   constructor (OML: OML, errorFunction: Function) {
     this.DOM = { id: 'root' }
-    this._DOMPath = {}
+    this._DOMPath = { root: [] }
     this._errorFunction = errorFunction
     const { newDOM } = this._OML2DOM(OML, this.DOM)
     this.DOM = newDOM
@@ -31,7 +31,7 @@ export default class DOMManager {
           } catch (e) {
             return null
           }
-          if (packet.data.targetId == null) {
+          if (packet.data.targetId == null || packet.data.targetId === this.DOM.id) {
             const { newDOM } = this._OML2DOM(OML, null)
             this.DOM = newDOM
           } else {
@@ -55,6 +55,41 @@ export default class DOMManager {
               DOM = DOM.group[id]
             }
           }
+          update = true
+          return null
+        }
+        case 'group.del': {
+          const path = this._DOMPath[packet.data.targetId]
+          if (path == null) {
+            return null
+          }
+          if (path[0] !== this.DOM.id) {
+            this._errorFunction('（　´∀｀）')
+            return null
+          }
+          let DOM = this.DOM
+          for (let id of path.slice(1)) {
+            if (!DOM.group && DOM.group[id]) {
+              this._errorFunction('（　´∀｀）')
+              return null
+            }
+            DOM = DOM.group[id]
+          }
+          if (!DOM.group || !DOM.group[packet.data.targetId]) {
+            this._errorFunction('（　´∀｀）')
+            return null
+          }
+          const index = DOM.groupOrder.indexOf(packet.data.targetId)
+          if (
+            !DOM.group[packet.data.targetId] ||
+            !this._DOMPath[packet.data.targetId] ||
+            index === -1
+          ) {
+            this._errorFunction('（　´∀｀）')
+          }
+          delete DOM.group[packet.data.targetId]
+          delete this._DOMPath[packet.data.targetId]
+          DOM.groupOrder.splice(index, 1)
           update = true
           return null
         }

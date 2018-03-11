@@ -64,7 +64,9 @@ export function activate (context: vscode.ExtensionContext) {
         ]
         const edit = new vscode.WorkspaceEdit()
         edit.set(document.uri, edits)
+        const selections = textEditor.selections
         vscode.workspace.applyEdit(edit)
+        textEditor.selections = selections
       }
     })
 
