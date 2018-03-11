@@ -58,6 +58,31 @@ export default class DOMManager {
           update = true
           return null
         }
+        case 'group.del': {
+          const path = this._DOMPath[packet.data.targetId]
+          if (path == null) {
+            return null
+          }
+          let parent = this.DOM
+          for (let dir of path.slice(1)) {
+            parent = parent.group[dir]
+          }
+          if (!parent.group || !parent.group[packet.data.targetId]) {
+            return null
+          }
+          const index = parent.groupOrder.indexOf(packet.data.targetId)
+          if (
+            !parent.group[packet.data.targetId] ||
+            !this._DOMPath[packet.data.targetId] ||
+            index === -1
+          ) {
+            this._errorFunction('（　´∀｀）')
+          }
+          delete parent.group[packet.data.targetId]
+          delete this._DOMPath[packet.data.targetId]
+          parent.groupOrder.splice(index, 1)
+          return null
+        }
         default: {
           throw new Error('not implemented')
         }

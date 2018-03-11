@@ -13,27 +13,26 @@ suite('DOMManager Tests', () => {
     const domManager = new DOMManager({}, console.error)
     chai.expect(domManager)
       .to.have.property('DOM')
-      .to.have.property('id').match(uuid)
+      .to.have.include({ id: 'root' })
   })
   test('constructor, getOML check', () => {
     const domManager = new DOMManager({}, console.error)
     // {"id":uuid}
     chai.expect(domManager.getOMLFromDOM())
-      .to.have.property('id').match(uuid)
+    .to.have.include({ id: 'root' })
   })
   test('include group constructor', () => {
     const domManager = new DOMManager({ group: [] }, console.error)
     // {"id":uuid,"group":[]}
     chai.expect(domManager.getOMLFromDOM())
       .to.deep.include({ 'group': [] })
-      .to.have.property('id').match(uuid)
   })
   test('include component constructor', () => {
     const domManager = new DOMManager({ component: '@cube' }, console.error)
     // {"id":uuid,"component":"@cube"}
     chai.expect(domManager.getOMLFromDOM())
       .to.deep.include({ 'component': '@cube' })
-      .to.have.property('id').match(uuid)
+      .to.have.include({ id: 'root' })
   })
   test('get packets', () => {
     const domManager = new DOMManager({}, console.error)
@@ -41,15 +40,14 @@ suite('DOMManager Tests', () => {
     // {"id":uuid,"group":[]}
     chai.expect(domManager.getOMLFromDOM())
       .to.have.deep.include({ group: [] })
-      .to.have.property('id').match(uuid)
+      .to.have.include({ id: 'root' })
   })
   test('get packets2', () => {
     const domManager = new DOMManager({ group: [{ id: 'testId', component: '@cube' }] }, console.error)
     const packets = domManager.updateDOMByOML({ group: [{ id: 'testId', component: '@sphere' }] })
     // {"id":uuid,"group":[{"id":uuid,"component":"@sphere"}]}
     chai.expect(domManager.getOMLFromDOM())
-      .to.have.property('id').match(uuid)
-    chai.expect(domManager.getOMLFromDOM())
+      .to.have.include({ id: 'root' })
       .to.have.nested.include({ 'group[0].component': '@sphere' })
       .to.have.nested.include({ 'group[0].id': 'testId' })
   })
@@ -106,6 +104,67 @@ suite('DOMManager Tests', () => {
       .to.have.nested.include({ 'group[0].id': 'testId' })
       .to.have.nested.include({ 'group[0].group[0].id': 'testId3' })
       .to.have.nested.include({ 'group[0].group[0].component': '@sphere' })
-      .to.have.property('id').match(uuid)
+      .to.have.include({ id: 'root' })
+  })
+  test('group del', () => {
+    const domManager = new DOMManager({
+      group: [
+        {
+          component: '@cube',
+          id: 'test'
+        }
+      ]
+    }, console.error)
+    domManager.updateDOMByPackets([{
+      message: 'group.del',
+      data: {
+        targetId: 'test'
+      }
+    } as Packet])
+    chai.expect(domManager.getOMLFromDOM())
+      .to.have.property('group')
+      .to.have.lengthOf(0)
+  })
+  test('group del2', () => {
+    const domManager = new DOMManager({
+      group: [
+        {
+          group: [
+            {
+              component: '@cube',
+              id: 'test'
+            }
+          ]
+        }
+      ]
+    }, console.error)
+    domManager.updateDOMByPackets([{
+      message: 'group.del',
+      data: {
+        targetId: 'test'
+      }
+    } as Packet])
+    chai.expect(domManager.getOMLFromDOM().group[0])
+      .to.have.property('group')
+      .to.have.lengthOf(0)
+  })
+  test('group del targetID=null', () => {
+    const domManager = new DOMManager({
+      group: [
+        {
+          component: '@cube',
+          id: 'test'
+        }
+      ]
+    }, console.error)
+    domManager.updateDOMByPackets([{
+      message: 'group.del',
+      data: {
+        targetId: null
+      }
+    } as Packet])
+    chai.expect(domManager.getOMLFromDOM())
+      .to.have.property('group')
+      .to.have.lengthOf(1)
   })
 })
