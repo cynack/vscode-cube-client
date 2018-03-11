@@ -1,5 +1,9 @@
 # Change Log
 
+# [0.0.8]
+- カーソルが移動しないように
+- group.del対応
+
 # [0.0.7]
 - 初期化時にこちらからelement.setを送るように
 - parentId削除(targetIdに)
